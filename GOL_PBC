@@ -1,0 +1,155 @@
+import matplotlib.pyplot as plt
+import numpy as np
+
+import matplotlib.pyplot as plt
+from matplotlib import cm
+from matplotlib.colors import ListedColormap, LinearSegmentedColormap
+#import pygame
+
+
+# World size
+m=100
+n=100
+board=np.ones((m,n))*0
+#Given a board with m by n cells, each cell has an initial state live (1) or dead (0).
+
+def pbc(params,upper):
+    for order in range(len(params)):
+        if params[order] <0:
+
+            params[order]=-1
+        if params[order] > upper-1:
+
+            params[order]=0
+    return params
+
+#Any live cell
+#with fewer than two live neighbors dies, as if caused by under-population.
+#with two or three live neighbors lives on to the next generation.
+#with more than three live neighbors dies, as if by over-population..
+#Any dead cell
+#with exactly three live neighbors becomes a live cell, as if by reproduction.
+
+
+def livecell(z,i,j):
+
+    acom=[i-1,i,i+1]
+    rcom=[j-1,j,j+1]
+    if i==0:
+        acom[0]=-1
+    if j==0:
+        rcom[0]=-1
+    if i==99:
+        acom[-1]=0
+    if j==99:
+        rcom[-1] = 0
+    #acom=pbc(acom, m)
+    #rcom=pbc(rcom, n)
+
+    live_neighbors=z[acom[0]][rcom[0]]+z[acom[0]][rcom[1]]+z[acom[0]][rcom[2]]+z[acom[1]][rcom[0]]  +z[acom[1]][rcom[2]]  +z[acom[2]][rcom[0]] +z[acom[2]][rcom[1]]+z[acom[2]][rcom[2]]
+
+    #print(live_neighbors)
+    if live_neighbors<2:
+        return 0
+    elif live_neighbors>3:
+        return 0
+    else:
+        return 1
+
+def deadcell(z,i,j):
+    acom=[i-1,i,i+1]
+    rcom=[j-1,j,j+1]
+    if i==0:
+        acom[0]=-1
+    if j==0:
+        rcom[0]=-1
+    if i==99:
+        acom[-1]=0
+    if j==99:
+        rcom[-1] = 0
+    #acom=pbc(acom, m)
+    #rcom=pbc(rcom, n)
+    #print(acom_modified,rcom_modified)
+    live_neighbors=z[acom[0]][rcom[0]]+z[acom[0]][rcom[1]]+z[acom[0]][rcom[2]]+z[acom[1]][rcom[0]]  +z[acom[1]][rcom[2]]  +z[acom[2]][rcom[0]] +z[acom[2]][rcom[1]]+z[acom[2]][rcom[2]]
+
+
+    if live_neighbors==3:
+        return 1
+    else:
+        return 0
+
+
+
+
+def rule(z):
+
+    z_next_generation=np.ones((m,n))*0
+
+    for i in range(100):
+
+        for j in range(100):
+
+            if z[i][j] == 1:
+                # Live cell
+                z_next_generation[i][j]=livecell(z,i,j)
+            else :
+                z_next_generation[i][j] = deadcell(z,i, j)
+
+    return z_next_generation
+
+
+def plot_examples(d,ax1,cmap='Greys'):
+
+
+
+    viridis = cm.get_cmap(cmap, 256)
+    psm = ax1.pcolormesh(d, cmap=viridis, rasterized=False, vmin=0, vmax=1)
+
+
+    plt.show()
+
+
+from collections import OrderedDict
+if __name__ == '__main__':
+    cmaps = [
+        'Greys', 'Purples', 'Blues', 'Greens', 'Oranges', 'Reds',
+        'YlOrBr', 'YlOrRd', 'OrRd', 'PuRd', 'RdPu', 'BuPu',
+        'GnBu', 'PuBu', 'YlGnBu', 'PuBuGn', 'BuGn', 'YlGn']
+
+    Initial_world=np.random.rand(100,100)
+    livecell_first_generation=np.where(Initial_world >=0.5)
+    deadcell_first_generation=np.where(Initial_world < 0.5)
+    Initial_world[livecell_first_generation]=1
+    Initial_world[deadcell_first_generation] = 0
+
+    fig = plt.figure(figsize=(10,10))
+    ax = plt.gca()
+    plt.rcParams["axes.grid"] = True
+    plt.rcParams["grid.linestyle"] = (99, 99)
+
+    new_world = rule(Initial_world)
+    plot_examples(Initial_world,ax)
+    plt.pause(0.1)
+    ax.cla()
+    plot_examples(new_world,ax)
+    plt.pause(0.1)
+
+
+    i=0
+    while 1:
+        old_world=new_world
+        if i>len(cmaps)-1:
+            i=0
+        else:
+            pass
+        cmap=cmaps[i]
+        ax.cla()
+
+
+        new_world=rule(old_world)
+
+        plot_examples(new_world,ax,cmap)
+        plt.pause(0.001)
+        i=i+1
+
+
